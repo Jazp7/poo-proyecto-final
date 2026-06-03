@@ -1,5 +1,3 @@
-
-
 export class Factura {
     private idFactura: string;
     private idReparacion: string;
@@ -33,15 +31,15 @@ export class Factura {
  ID Factura    : ${this.idFactura}
  ID Reparación : ${this.idReparacion}
  Fecha Emisión : ${this.fechaEmision.toLocaleString()}
---------------------------------------------------
+ --------------------------------------------------
  DETALLE DE COBROS:
  Subtotal      : $${subtotal.toFixed(2)}
  IVA (13%)     : $${impuesto.toFixed(2)}
---------------------------------------------------
+ --------------------------------------------------
  TOTAL PAGADO  : $${this.totalPagado.toFixed(2)}
-==================================================
-                ¡Gracias por su confianza!
-==================================================
+ ==================================================
+                 ¡Gracias por su confianza!
+ ==================================================
 `;
     }
 }

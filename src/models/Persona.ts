@@ -1,8 +1,8 @@
 export abstract class Persona {
-  protected id: string
-  protected nombre: string
-  protected telefono: string
-  protected email: string
+  public id: string
+  public nombre: string
+  public telefono: string
+  public email: string
 
   constructor(id: string, nombre: string, telefono: string, email: string) {
     this.id = id
