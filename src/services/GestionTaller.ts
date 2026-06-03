@@ -6,14 +6,15 @@ import { Reparacion } from "../models/Reparacion.js";
 import { Factura } from "../models/Factura.js";
 
 export class GestionTaller {
-  private _clientes: Cliente[] = [];
-  private _mecanicos: Mecanico[] = [];
-  private _vehiculos: Vehiculo[] = [];
-  private _repuestos: Repuesto[] = [];
-  private _reparaciones: Reparacion[] = [];
-  private _facturas: Factura[] = [];
+  private readonly _clientes: Cliente[] = [];
+  private readonly _mecanicos: Mecanico[] = [];
+  private readonly _vehiculos: Vehiculo[] = [];
+  private readonly _repuestos: Repuesto[] = [];
+  private readonly _reparaciones: Reparacion[] = [];
+  private readonly _facturas: Factura[] = [];
 
-  constructor() {}
+  // No se necesita constructor, así que se elimina para evitar redondancias
+  // constructor() {}
 
   // ES6 GETTERS
   public get clientes(): Cliente[] {
@@ -141,16 +142,21 @@ export class GestionTaller {
     }
 
     if (repuesto[`stock`] < cant) {
+      // variables para evitar doble backticks
+      let respuestoNombre = repuesto[`nombre`];
+      let repuestoStock = repuesto[`stock`];
       throw new Error(
-        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${repuesto[`nombre`]}: ${repuesto[`stock`]} unidades`,
+        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${respuestoNombre}: ${repuestoStock} unidades`,
       );
     }
 
     repuesto.disminuirStock(cant);
     reparacion.agregarRepuesto(repuesto, cant);
 
+    let repuestoNombre = repuesto[`nombre`]; // Para evitar usar dos veces backsticks
+
     console.log(
-      `Se agregaron ${cant} unidades de ${repuesto[`nombre`]} a la orden ${idReparacion}`,
+      `Se agregaron ${cant} unidades de ${repuestoNombre} a la orden ${idReparacion}`,
     );
   }
 
