@@ -196,7 +196,7 @@ export class Menu {
   }
 
   private async listarClientesHandler(): Promise<void> {
-    const clientes = this.taller.obtenerClientes();
+    const clientes = this.taller.clientes;
     if (clientes.length === 0) {
       console.log("No hay clientes registrados.");
       return;
