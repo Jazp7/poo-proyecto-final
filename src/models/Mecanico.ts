@@ -13,5 +13,15 @@ export class Mecanico extends Persona {
     return this.id;
   }
 
-  public cambiarDisponibilidad(estado: boolean): void {}
+  public cambiarDisponibilidad(estado: boolean): void {
+    // Validamos si ya tiene el estado que se le quiere asignar para no sobreescribir 
+    if (this.disponible === estado) {
+      console.log(`[Mecánico]: El mecánico ${this.nombre} ya se encuentra ${estado ? 'Disponible' : 'Ocupado'}.`);
+      return;
+    }
+
+    // Cambiamos el valor de la propiedad 
+    this.disponible = estado;
+    console.log(`[Mecánico]: Estado de ${this.nombre} cambiado a ${this.disponible ? 'Disponible' : 'Ocupado'}.`);
+  }
 }
