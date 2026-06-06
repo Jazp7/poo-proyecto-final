@@ -11,7 +11,39 @@ export class Repuesto {
     this.stock = stock;
   }
 
-  public disminuirStock(cantidad: number): void {}
 
-  public aumentarStock(cantidad: number): void {}
+public obtenerId(): string {
+        return this.id;
+    }
+
+    public obtenerNombre(): string {
+        return this.nombre;
+    }
+
+    public obtenerPrecio(): number {
+        return this.precio;
+    }
+
+    public obtenerStock(): number {
+        return this.stock;
+    }
+
+    public disminuirStock(cantidad: number): void {
+        if (cantidad <= 0) {
+            throw new Error("[Inventario]: La cantidad a disminuir debe ser mayor a cero.");
+        }
+        if (this.stock < cantidad) {
+            throw new Error(`[Inventario]: Stock insuficiente para ${this.nombre}. Disponibles: ${this.stock}, Solicitados: ${cantidad}`);
+        }
+        this.stock -= cantidad;
+    }
+
+    
+    public aumentarStock(cantidad: number): void {
+        if (cantidad <= 0) {
+            throw new Error("[Inventario]: La cantidad a añadir debe ser mayor a cero.");
+        }
+        this.stock += cantidad;
+    }
+
 }

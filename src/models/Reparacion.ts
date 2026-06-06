@@ -22,11 +22,16 @@ export class Reparacion {
     this.costoManoObra = costoManoObra;
   }
 
-  public agregarRepuesto(repuesto: Repuesto, cantidad: number): void {}
+  public agregarRepuesto(repuesto: Repuesto, cantidad: number): void {
+    console.log(`[Reparación]: Agregados ${cantidad} unidades de repuesto a la orden ${this.id}.`);
+  }
 
-  public actualizarEstado(nuevoEstado: string): void {}
+ 
+  public actualizarEstado(nuevoEstado: string): void {
+    this.estado = nuevoEstado;
+  }
 
   public calcularCostoTotal(): number {
-    return 0;
+    return this.costoManoObra;
   }
 }
