@@ -49,7 +49,6 @@
 - **Responsabilidad Principal:** Manejo de excepciones, validaciones de datos e interfaz de usuario en consola.
 
 - **Tareas de Código:**
-  - **(Opcional)** Crear las clases de errores personalizados heredando de la clase nativa `Error` (ej., `StockInsuficienteError`, `VehiculoInexistenteError`).
   - Implementar bloques `try-catch` y lanzar errores con `throw new Error()` en los métodos críticos del sistema.
   - Desarrollar el menú interactivo por consola en Node.js que conecte al usuario con las funciones de `GestionTaller` (utilizando `ReadLine`).
 - **Aporte a la Documentación:** Escribir el apartado de "Dificultades encontradas y soluciones aplicadas".

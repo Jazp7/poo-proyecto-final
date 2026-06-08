@@ -36,8 +36,19 @@ describe("Reparacion Model Tests", () => {
     expect(reparacion.estado).toBe("Completado");
   });
 
-  test("should calculate cost total", () => {
+  test("should calculate cost total including labor and assigned spare parts", () => {
     const reparacion = new Reparacion("REP-1", "ABC-123", "M-001", "Cambio de aceite", 50.0);
-    expect(reparacion.calcularCostoTotal()).toBe(50.0);
+    const repuesto1 = new Repuesto("R-100", "Filtro de Aceite", 15.0, 20);
+    const repuesto2 = new Repuesto("R-200", "Aceite Sintético", 25.0, 10);
+
+    reparacion.agregarRepuesto(repuesto1, 1);
+    reparacion.agregarRepuesto(repuesto2, 2);
+
+    // Total should be: labor (50) + repuesto1 (15 * 1) + repuesto2 (25 * 2) = 50 + 15 + 50 = 115.0
+    expect(reparacion.calcularCostoTotal()).toBe(115.0);
+    expect(reparacion.getRepuestosAsignados()).toEqual([
+      { repuesto: repuesto1, cantidad: 1 },
+      { repuesto: repuesto2, cantidad: 2 }
+    ]);
   });
 });
