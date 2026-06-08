@@ -7,7 +7,7 @@ import { Repuesto } from "../../models/Repuesto.js";
 
 describe("GestionTaller Service Tests", () => {
   let taller: GestionTaller;
-  let logSpy: jest.SpyInstance;
+  let logSpy: any;
 
   beforeEach(() => {
     taller = new GestionTaller();
@@ -36,10 +36,31 @@ describe("GestionTaller Service Tests", () => {
     });
 
     test("should register vehicle successfully", () => {
+      const cliente = new Cliente("C-1", "Ana", "1111", "ana@example.com");
+      taller.registrarCliente(cliente);
       const sedan = new Sedan("ABC-123", "Toyota", "Corolla", 2020, "C-1", 4);
       taller.registrarVehiculo(sedan);
       expect(taller.vehiculos.length).toBe(1);
       expect(taller.vehiculos[0]).toBe(sedan);
+      expect(cliente.getPlacasVehiculos()).toContain("ABC-123");
+    });
+
+    test("should throw error when registering vehicle for non-existent client", () => {
+      const sedan = new Sedan("ABC-123", "Toyota", "Corolla", 2020, "C-999", 4);
+      expect(() => taller.registrarVehiculo(sedan)).toThrow(
+        "ERROR: No se puede registrar el vehiculo. El cliente con ID C-999 no existe"
+      );
+    });
+
+    test("should throw error when registering duplicate vehicle plaque", () => {
+      const cliente = new Cliente("C-1", "Ana", "1111", "ana@example.com");
+      taller.registrarCliente(cliente);
+      const sedan1 = new Sedan("ABC-123", "Toyota", "Corolla", 2020, "C-1", 4);
+      const sedan2 = new Sedan("ABC-123", "Honda", "Civic", 2021, "C-1", 4);
+      taller.registrarVehiculo(sedan1);
+      expect(() => taller.registrarVehiculo(sedan2)).toThrow(
+        "ERROR: El vehiculo con placa ABC-123 ya esta registrado"
+      );
     });
 
     test("should register mechanic successfully", () => {
@@ -157,6 +178,15 @@ describe("GestionTaller Service Tests", () => {
       expect(factura.getTotalPagado()).toBe(80.0);
       expect(taller.facturas.length).toBe(1);
       expect(taller.facturas[0]).toBe(factura);
+    });
+
+    test("should finalize repair and bill the combined cost of labor and spare parts", () => {
+      taller.iniciarReparacion("ABC-123", "M-1", "Falla", 100.0);
+      taller.asignarRepuestoAReparacion("REP-1", "R-1", 2); // Bujía is 5.0, so 2 * 5.0 = 10.0
+      
+      const factura = taller.finalizarYFacturarReparacion("REP-1");
+      
+      expect(factura.getTotalPagado()).toBe(110.0); // 100.0 + 10.0
     });
 
     test("should throw error when finalising non-existent repair", () => {

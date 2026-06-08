@@ -7,6 +7,7 @@ export class Reparacion {
   public descripcionProblema: string;
   public estado: string = "En Proceso";
   public costoManoObra: number;
+  private repuestosAsignados: { repuesto: Repuesto; cantidad: number }[] = [];
 
   constructor(
     id: string,
@@ -23,15 +24,32 @@ export class Reparacion {
   }
 
   public agregarRepuesto(repuesto: Repuesto, cantidad: number): void {
+    const asignacionExistente = this.repuestosAsignados.find(
+      (item) => item.repuesto.obtenerId() === repuesto.obtenerId()
+    );
+
+    if (asignacionExistente) {
+      asignacionExistente.cantidad += cantidad;
+    } else {
+      this.repuestosAsignados.push({ repuesto, cantidad });
+    }
+
     console.log(`[Reparación]: Agregados ${cantidad} unidades de repuesto a la orden ${this.id}.`);
   }
 
- 
   public actualizarEstado(nuevoEstado: string): void {
     this.estado = nuevoEstado;
   }
 
+  public getRepuestosAsignados(): { repuesto: Repuesto; cantidad: number }[] {
+    return this.repuestosAsignados;
+  }
+
   public calcularCostoTotal(): number {
-    return this.costoManoObra;
+    const costoRepuestos = this.repuestosAsignados.reduce(
+      (acumulado, item) => acumulado + item.repuesto.obtenerPrecio() * item.cantidad,
+      0
+    );
+    return this.costoManoObra + costoRepuestos;
   }
 }

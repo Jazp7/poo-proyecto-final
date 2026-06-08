@@ -9,7 +9,7 @@ El sistema está diseñado bajo principios fundamentales de ingeniería de softw
 1. **Separación de Responsabilidades (Single Responsibility Principle):** Cada directorio y clase tiene una única responsabilidad bien definida (ej. separar la presentación de la lógica de negocio).
 2. **Encapsulamiento:** Las clases protegen sus datos internos utilizando modificadores de acceso (`private` y `protected`), exponiendo la información y comportamientos necesarios únicamente mediante métodos públicos y descriptivos.
 3. **Herencia y Polimorfismo:** Implementación de jerarquías de clases para la reutilización de código (Personas y Vehículos) y comportamiento polimórfico en métodos compartidos.
-4. **Manejo de Errores Desacoplado:** Centralización de excepciones personalizadas para garantizar la estabilidad del sistema sin sobrecargar la lógica de negocio.
+4. **Manejo de Errores:** Control de errores mediante el uso de excepciones estándar (`Error`) lanzadas por la lógica de negocio y capturadas en la interfaz de usuario.
 
 ---
 
@@ -34,8 +34,6 @@ src/
 │   └── Factura.ts            # Comprobante financiero formateado
 ├── services/                 # Capa de orquestación y lógica
 │   └── GestionTaller.ts      # Controlador principal y base de datos simulada en RAM (arreglos)
-├── errors/                   # Excepciones personalizadas
-│   └── CustomErrors.ts       # Errores específicos del negocio
 └── tests/                    # Pruebas unitarias (Jest)
     ├── models/               # Pruebas para clases del dominio
     └── services/             # Pruebas para el controlador e integraciones
@@ -64,8 +62,7 @@ src/
 ### 4. Orquestación y Lógica (Services)
 * **`src/services/GestionTaller.ts`:** El cerebro operativo del backend. Administra las colecciones en memoria RAM (arreglos de vehículos, clientes, mecánicos, reparaciones y repuestos). Contiene los métodos para crear registros, buscar elementos, asociar mecánicos a reparaciones y simular la lógica de persistencia mientras dure activa la sesión de la consola.
 
-### 5. Manejo de Errores (Errors)
-* **`src/errors/CustomErrors.ts`:** Agrupa excepciones personalizadas del negocio (por ejemplo, `VehiculoInexistenteError`, `StockInsuficienteError`) que extienden la clase `Error` nativa de TypeScript. Esto permite separar las validaciones críticas del flujo normal y facilita el uso limpio de bloques `try-catch`.
+
 
 ---
 
@@ -78,17 +75,15 @@ graph TD
     CLI[Interfaz de Consola - Menu.ts]
     GT[Gestión de Taller - GestionTaller.ts]
     MD[Modelos de Dominio - models/]
-    EX[Errores Personalizados - CustomErrors.ts]
 
     CLI -->|1. Solicita acción e introduce datos| GT
     GT -->|2. Instancia / Consulta| MD
-    GT -->|3. Valida e interrumpe con throw| EX
-    EX -->|4. Propaga excepción| CLI
-    GT -->|5. Retorna datos procesados| CLI
+    GT -->|3. Valida e interrumpe con throw| CLI
+    GT -->|4. Retorna datos procesados| CLI
 ```
 
 1. El usuario interactúa con la terminal en `Menu.ts`.
 2. `Menu.ts` llama al orquestador en `GestionTaller.ts` con los parámetros correspondientes.
 3. `GestionTaller.ts` crea o actualiza las entidades que viven en `models/`.
-4. Si hay inconsistencias (ej. buscar un vehículo que no existe o consumir un repuesto agotado), `GestionTaller.ts` lanza una excepción importada de `CustomErrors.ts`.
+4. Si hay inconsistencias (ej. buscar un vehículo que no existe o consumir un repuesto agotado), `GestionTaller.ts` lanza una excepción de tipo `Error`.
 5. `Menu.ts` captura el error mediante un bloque `try-catch`, muestra el mensaje amigable al usuario en pantalla y continúa con la ejecución de la consola sin interrumpir el programa de forma abrupta.

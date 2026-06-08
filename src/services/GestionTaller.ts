@@ -13,9 +13,6 @@ export class GestionTaller {
   private readonly _reparaciones: Reparacion[] = [];
   private readonly _facturas: Factura[] = [];
 
-  // No se necesita constructor, así que se elimina para evitar redondancias
-  // constructor() {}
-
   // ES6 GETTERS
   public get clientes(): Cliente[] {
     return this._clientes;
@@ -60,8 +57,32 @@ export class GestionTaller {
   }
 
   public registrarVehiculo(vehiculo: Vehiculo): void {
+    const placa = vehiculo.obtenerPlaca();
+    const clienteId = vehiculo.obtenerClienteId();
+
+    const cliente = this._clientes.find(
+      (c) => c.obtenerIdentificacion() === clienteId,
+    );
+
+    if (!cliente) {
+      throw new Error(
+        `ERROR: No se puede registrar el vehiculo. El cliente con ID ${clienteId} no existe`,
+      );
+    }
+
+    const vehiculoExistente = this._vehiculos.some(
+      (v) => v.obtenerPlaca() === placa,
+    );
+
+    if (vehiculoExistente) {
+      throw new Error(
+        `ERROR: El vehiculo con placa ${placa} ya esta registrado`,
+      );
+    }
+
     this._vehiculos.push(vehiculo);
-    console.log(`El Vehiculo ha sido regustrado correctamente`);
+    cliente.asociarVehiculo(placa);
+    console.log(`El Vehiculo con placa ${placa} ha sido registrado correctamente`);
   }
 
   public registrarMecanico(mecanico: Mecanico): void {
@@ -81,7 +102,7 @@ export class GestionTaller {
     descripcion: string,
     manoDeObra: number,
   ): void {
-    const vehiculoExiste = this._vehiculos.some((v) => v[`placa`] === placa);
+    const vehiculoExiste = this._vehiculos.some((v) => v.obtenerPlaca() === placa);
 
     if (!vehiculoExiste) {
       throw new Error(
@@ -98,7 +119,7 @@ export class GestionTaller {
       );
     }
 
-    if (mecanico[`disponible`] === false) {
+    if (!mecanico.disponible) {
       throw new Error(
         `ERROR DE DISPONIBILIDAD: El mecanico ya esta asignado a otro vehiculo`,
       );
@@ -127,33 +148,32 @@ export class GestionTaller {
     idRepuesto: string,
     cant: number,
   ): void {
-    const reparacion = this._reparaciones.find((r) => r[`id`] === idReparacion);
+    const reparacion = this._reparaciones.find((r) => r.id === idReparacion);
     if (!reparacion) {
       throw new Error(
         `ERROR DE INVENTARIO: La orden de reparacion ${idReparacion} no existe`,
       );
     }
 
-    const repuesto = this._repuestos.find((r) => r[`id`] === idRepuesto);
+    const repuesto = this._repuestos.find((r) => r.obtenerId() === idRepuesto);
     if (!repuesto) {
       throw new Error(
         `ERROR DE INVENTARIO: El repuesto no existe en el catagolo`,
       );
     }
 
-    if (repuesto[`stock`] < cant) {
-      // variables para evitar doble backticks
-      let respuestoNombre = repuesto[`nombre`];
-      let repuestoStock = repuesto[`stock`];
+    if (repuesto.obtenerStock() < cant) {
+      const repuestoNombre = repuesto.obtenerNombre();
+      const repuestoStock = repuesto.obtenerStock();
       throw new Error(
-        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${respuestoNombre}: ${repuestoStock} unidades`,
+        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${repuestoNombre}: ${repuestoStock} unidades`,
       );
     }
 
     repuesto.disminuirStock(cant);
     reparacion.agregarRepuesto(repuesto, cant);
 
-    let repuestoNombre = repuesto[`nombre`]; // Para evitar usar dos veces backsticks
+    const repuestoNombre = repuesto.obtenerNombre();
 
     console.log(
       `Se agregaron ${cant} unidades de ${repuestoNombre} a la orden ${idReparacion}`,
@@ -161,7 +181,7 @@ export class GestionTaller {
   }
 
   public finalizarYFacturarReparacion(idReparacion: string): Factura {
-    const reparacion = this._reparaciones.find((r) => r[`id`] === idReparacion);
+    const reparacion = this._reparaciones.find((r) => r.id === idReparacion);
     if (!reparacion) {
       throw new Error(
         `No se puede facturar.La orden ${idReparacion} no existe`,
@@ -173,7 +193,7 @@ export class GestionTaller {
     const costoTotal = reparacion.calcularCostoTotal();
 
     const mecanico = this._mecanicos.find(
-      (m) => m.obtenerIdentificacion() === reparacion[`idMecanico`],
+      (m) => m.obtenerIdentificacion() === reparacion.idMecanico,
     );
     if (mecanico) {
       mecanico.cambiarDisponibilidad(true);
@@ -194,7 +214,7 @@ export class GestionTaller {
 
   public consultarHistorialVehiculo(placa: string): Reparacion[] {
     const historial = this._reparaciones.filter(
-      (r) => r["placaVehiculo"] === placa,
+      (r) => r.placaVehiculo === placa,
     );
 
     if (historial.length === 0) {
@@ -210,3 +230,4 @@ export class GestionTaller {
     return historial;
   }
 }
+

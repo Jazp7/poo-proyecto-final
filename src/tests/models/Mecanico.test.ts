@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { Mecanico } from "../../models/Mecanico.js";
 
 describe("Mecanico Model Tests", () => {
-  let logSpy: jest.SpyInstance;
+  let logSpy: any;
 
   beforeEach(() => {
     logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
