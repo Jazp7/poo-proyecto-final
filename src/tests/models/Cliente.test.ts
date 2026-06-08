@@ -2,7 +2,7 @@ import { jest } from "@jest/globals";
 import { Cliente } from "../../models/Cliente.js";
 
 describe("Cliente Model Tests", () => {
-  let logSpy: jest.SpyInstance;
+  let logSpy: any;
 
   beforeEach(() => {
     logSpy = jest.spyOn(console, "log").mockImplementation(() => {});

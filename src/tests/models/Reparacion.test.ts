@@ -3,7 +3,7 @@ import { Reparacion } from "../../models/Reparacion.js";
 import { Repuesto } from "../../models/Repuesto.js";
 
 describe("Reparacion Model Tests", () => {
-  let logSpy: jest.SpyInstance;
+  let logSpy: any;
 
   beforeEach(() => {
     logSpy = jest.spyOn(console, "log").mockImplementation(() => {});

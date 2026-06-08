@@ -7,7 +7,7 @@ import { Repuesto } from "../../models/Repuesto.js";
 
 describe("GestionTaller Service Tests", () => {
   let taller: GestionTaller;
-  let logSpy: jest.SpyInstance;
+  let logSpy: any;
 
   beforeEach(() => {
     taller = new GestionTaller();
