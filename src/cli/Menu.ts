@@ -35,6 +35,49 @@ export class Menu {
     console.log(chalk.whiteBright.bold(`\n====== ${texto} ======`));
   }
 
+  private imprimirTabla(headers: string[], rows: string[][], rawRows: string[][]): void {
+    const colWidths = headers.map((h, i) => {
+      const rowLengths = rawRows.map(r => {
+        if (!r || typeof r[i] !== "string") return 0;
+        return r[i].length;
+      });
+      return Math.max(h.length, ...rowLengths) + 2; // +2 para dar margen de al menos 1 espacio en cada lado
+    });
+
+    const crearLineaSeparadora = (izq: string, centro: string, der: string, linea: string) => {
+      return izq + colWidths.map(w => linea.repeat(w)).join(centro) + der;
+    };
+
+    // Bordes superiores
+    console.log(chalk.gray(crearLineaSeparadora("┌", "┬", "┐", "─")));
+
+    // Encabezados
+    const headerCells = headers.map((h, i) => {
+      const width = colWidths[i] ?? (h.length + 2);
+      const padding = width - h.length - 1;
+      return " " + chalk.whiteBright.bold(h) + " ".repeat(padding >= 0 ? padding : 0);
+    });
+    console.log(chalk.gray("│") + headerCells.join(chalk.gray("│")) + chalk.gray("│"));
+
+    // Separador de encabezados
+    console.log(chalk.gray(crearLineaSeparadora("├", "┼", "┤", "─")));
+
+    // Filas
+    rows.forEach((row, rowIndex) => {
+      const cells = row.map((cell, colIndex) => {
+        const rawRow = rawRows[rowIndex];
+        const rawCell = rawRow && typeof rawRow[colIndex] === "string" ? rawRow[colIndex] : "";
+        const width = colWidths[colIndex] ?? (rawCell.length + 2);
+        const padding = width - rawCell.length - 1;
+        return " " + cell + " ".repeat(padding >= 0 ? padding : 0);
+      });
+      console.log(chalk.gray("│") + cells.join(chalk.gray("│")) + chalk.gray("│"));
+    });
+
+    // Bordes inferiores
+    console.log(chalk.gray(crearLineaSeparadora("└", "┴", "┘", "─")));
+  }
+
   private pausar(mensaje: string = "Presione Enter " + chalk.whiteBright.bold("para continuar...")): Promise<void> {
     return new Promise((resolve) => {
       this.rl.question(mensaje, () => resolve());
@@ -95,6 +138,31 @@ export class Menu {
             await this.listarClientesHandler();
             await this.pausar();
             break;
+          case "10":
+            console.clear();
+            await this.listarVehiculosHandler();
+            await this.pausar();
+            break;
+          case "11":
+            console.clear();
+            await this.listarMecanicosHandler();
+            await this.pausar();
+            break;
+          case "12":
+            console.clear();
+            await this.listarRepuestosHandler();
+            await this.pausar();
+            break;
+          case "13":
+            console.clear();
+            await this.listarReparacionesHandler();
+            await this.pausar();
+            break;
+          case "14":
+            console.clear();
+            await this.listarFacturasHandler();
+            await this.pausar();
+            break;
           case "0":
             console.clear();
             console.log("Saliendo del sistema...");
@@ -122,6 +190,11 @@ export class Menu {
     console.log(chalk.whiteBright.bold("7. ") + "Finalizar y facturar reparación");
     console.log(chalk.whiteBright.bold("8. ") + "Consultar historial de vehículo");
     console.log(chalk.whiteBright.bold("9. ") + "Listar clientes");
+    console.log(chalk.whiteBright.bold("10. ") + "Listar vehículos");
+    console.log(chalk.whiteBright.bold("11. ") + "Listar mecánicos");
+    console.log(chalk.whiteBright.bold("12. ") + "Listar repuestos");
+    console.log(chalk.whiteBright.bold("13. ") + "Listar reparaciones");
+    console.log(chalk.whiteBright.bold("14. ") + "Listar facturas");
     console.log(chalk.red.bold("0. Salir"));
   }
 
@@ -243,9 +316,122 @@ export class Menu {
       console.log(chalk.red("No hay clientes registrados."));
       return;
     }
-    for (const c of clientes) {
-      console.log(`[${c.id}] ${c.nombre} — ${c.telefono} — ${c.email}`);
+    this.titulo("Clientes Registrados");
+    const headers = ["ID", "Nombre", "Teléfono", "Email"];
+    const rows = clientes.map(c => [c.id, c.nombre, c.telefono, c.email]);
+    this.imprimirTabla(headers, rows, rows);
+  }
+
+  private async listarVehiculosHandler(): Promise<void> {
+    const vehiculos = this.taller.vehiculos;
+    if (vehiculos.length === 0) {
+      console.log(chalk.red("No hay vehículos registrados."));
+      return;
     }
+    this.titulo("Vehículos Registrados");
+    const headers = ["Placa", "Marca", "Modelo", "Año", "Propietario ID", "Tipo", "Detalle"];
+    const rows = vehiculos.map(v => {
+      const tipo = v.obtenerTipo();
+      const extra = tipo === "Sedan" ? `${(v as any).nroPuertas} puertas` : `${(v as any).cilindrada} cc`;
+      return [
+        (v as any).placa,
+        (v as any).marca,
+        (v as any).modelo,
+        (v as any).anio.toString(),
+        (v as any).clienteId,
+        tipo,
+        extra
+      ];
+    });
+    this.imprimirTabla(headers, rows, rows);
+  }
+
+  private async listarMecanicosHandler(): Promise<void> {
+    const mecanicos = this.taller.mecanicos;
+    if (mecanicos.length === 0) {
+      console.log(chalk.red("No hay mecánicos registrados."));
+      return;
+    }
+    this.titulo("Mecánicos Registrados");
+    const headers = ["ID", "Nombre", "Especialidad", "Estado", "Teléfono", "Email"];
+    const rawRows = mecanicos.map(m => [
+      m.id,
+      m.nombre,
+      m['especialidad'],
+      m.disponible ? "Disponible" : "Ocupado",
+      m.telefono,
+      m.email
+    ]);
+    const formattedRows = mecanicos.map(m => [
+      m.id,
+      m.nombre,
+      m['especialidad'],
+      m.disponible ? chalk.green("Disponible") : chalk.red("Ocupado"),
+      m.telefono,
+      m.email
+    ]);
+    this.imprimirTabla(headers, formattedRows, rawRows);
+  }
+
+  private async listarRepuestosHandler(): Promise<void> {
+    const repuestos = this.taller.repuestos;
+    if (repuestos.length === 0) {
+      console.log(chalk.red("No hay repuestos registrados."));
+      return;
+    }
+    this.titulo("Inventario de Repuestos");
+    const headers = ["ID", "Nombre", "Precio", "Stock"];
+    const rows = repuestos.map(r => [
+      r.id,
+      r.nombre,
+      `$${r.precio.toFixed(2)}`,
+      `${r.stock} unidades`
+    ]);
+    this.imprimirTabla(headers, rows, rows);
+  }
+
+  private async listarReparacionesHandler(): Promise<void> {
+    const reparaciones = this.taller.reparaciones;
+    if (reparaciones.length === 0) {
+      console.log(chalk.red("No hay reparaciones registradas."));
+      return;
+    }
+    this.titulo("Órdenes de Reparación");
+    const headers = ["ID", "Vehículo", "Mecánico", "Estado", "Mano de Obra", "Descripción"];
+    const rawRows = reparaciones.map(r => [
+      r.id,
+      r.placaVehiculo,
+      r.idMecanico,
+      r.estado === "Completado" ? "Completada" : "En Proceso",
+      `$${r.costoManoObra.toFixed(2)}`,
+      r.descripcionProblema
+    ]);
+    const formattedRows = reparaciones.map(r => [
+      r.id,
+      r.placaVehiculo,
+      r.idMecanico,
+      r.estado === "Completado" ? chalk.green("Completada") : chalk.yellow("En Proceso"),
+      `$${r.costoManoObra.toFixed(2)}`,
+      r.descripcionProblema
+    ]);
+    this.imprimirTabla(headers, formattedRows, rawRows);
+  }
+
+  private async listarFacturasHandler(): Promise<void> {
+    const facturas = this.taller.facturas;
+    if (facturas.length === 0) {
+      console.log(chalk.red("No hay facturas emitidas."));
+      return;
+    }
+    this.titulo("Facturas Emitidas");
+    const headers = ["ID Factura", "ID Reparación", "Total Pagado", "Fecha Emisión"];
+    const rows = facturas.map(f => [
+      f.getIdFactura(),
+      f.getIdReparacion(),
+      `$${f.getTotalPagado().toFixed(2)}`,
+      f.getFechaEmision().toLocaleString()
+    ]);
+    this.imprimirTabla(headers, rows, rows);
   }
 
   private mostrarFactura(factura: Factura): void {

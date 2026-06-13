@@ -112,7 +112,7 @@ export class Validador {
      * Valida que un monto de dinero (precio) sea mayor a cero.
      */
     public static validarPrecio(precio: number): void {
-        if (isNaN(precio) || precio <= 0) {
+        if (Number.isNaN(precio) || precio <= 0) {
             throw new Error("El precio debe ser un número mayor a cero.");
         }
     }
@@ -121,7 +121,7 @@ export class Validador {
      * Valida que el costo de la mano de obra sea mayor o igual a cero.
      */
     public static validarManoDeObra(costo: number): void {
-        if (isNaN(costo) || costo < 0) {
+        if (Number.isNaN(costo) || costo < 0) {
             throw new Error("El costo de mano de obra no puede ser negativo.");
         }
     }
@@ -157,4 +157,4 @@ export class Validador {
             throw new Error(`El campo '${nombreCampo}' es obligatorio y no puede estar vacío.`);
         }
     }
-}
+}
