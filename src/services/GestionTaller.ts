@@ -4,6 +4,7 @@ import { Vehiculo } from "../models/Vehiculo.js";
 import { Repuesto } from "../models/Repuesto.js";
 import { Reparacion } from "../models/Reparacion.js";
 import { Factura } from "../models/Factura.js";
+import { Validador } from "../utils/Validador.js";
 
 export class GestionTaller {
   private readonly _clientes: Cliente[] = [];
@@ -39,60 +40,90 @@ export class GestionTaller {
   }
 
   // METODOS DE REGISTRO
-  public registrarCliente(cliente: Cliente): void {
+  public registrarCliente(cliente: Cliente): Cliente {
+    Validador.validarId(cliente.id);
+    Validador.validarTextoObligatorio(cliente.nombre, "Nombre");
+    Validador.validarTelefono(cliente.telefono);
+    Validador.validarEmail(cliente.email);
+
     const clienteExistente = this._clientes.some(
       (c) => c.obtenerIdentificacion() === cliente.obtenerIdentificacion(),
     );
 
+    // Validacion
     if (clienteExistente) {
       throw new Error(
-        `ERROR: El cliente con ID ${cliente.obtenerIdentificacion()} ya esta registrado en el sistema`,
+        `El cliente con ID ${cliente.obtenerIdentificacion()} ya esta registrado en el sistema`,
       );
     }
 
     this._clientes.push(cliente);
-    console.log(
-      `Cliente: ${cliente.obtenerIdentificacion()} ha sido registrado con exito`,
-    );
+    return cliente;
   }
 
-  public registrarVehiculo(vehiculo: Vehiculo): void {
-    const placa = vehiculo.obtenerPlaca();
-    const clienteId = vehiculo.obtenerClienteId();
-
-    const cliente = this._clientes.find(
-      (c) => c.obtenerIdentificacion() === clienteId,
-    );
-
-    if (!cliente) {
-      throw new Error(
-        `ERROR: No se puede registrar el vehiculo. El cliente con ID ${clienteId} no existe`,
-      );
+  public registrarVehiculo(vehiculo: Vehiculo): Vehiculo {
+    Validador.validarPlaca((vehiculo as any)['placa']);
+    Validador.validarTextoObligatorio((vehiculo as any)['marca'], "Marca");
+    Validador.validarTextoObligatorio((vehiculo as any)['modelo'], "Modelo");
+    Validador.validarAnio((vehiculo as any)['anio']);
+    Validador.validarId((vehiculo as any)['clienteId']);
+    if (vehiculo.obtenerTipo() === "Sedan") {
+      Validador.validarStock((vehiculo as any)['nroPuertas']);
+    } else if (vehiculo.obtenerTipo() === "Moto") {
+      Validador.validarStock((vehiculo as any)['cilindrada']);
     }
 
     const vehiculoExistente = this._vehiculos.some(
-      (v) => v.obtenerPlaca() === placa,
+      (v) => (v as any)['placa'] === (vehiculo as any)['placa'],
     );
-
     if (vehiculoExistente) {
-      throw new Error(
-        `ERROR: El vehiculo con placa ${placa} ya esta registrado`,
-      );
+      throw new Error(`El vehiculo con placa ${(vehiculo as any)['placa']} ya esta registrado en el sistema`);
+    }
+
+    const clienteExiste = this._clientes.some(
+      (c) => c.obtenerIdentificacion() === (vehiculo as any)['clienteId'],
+    );
+    if (!clienteExiste) {
+      throw new Error(`No se puede registrar el vehiculo. El cliente con ID ${(vehiculo as any)['clienteId']} no existe en el sistema`);
     }
 
     this._vehiculos.push(vehiculo);
-    cliente.asociarVehiculo(placa);
-    console.log(`El Vehiculo con placa ${placa} ha sido registrado correctamente`);
+    return vehiculo;
   }
 
-  public registrarMecanico(mecanico: Mecanico): void {
+  public registrarMecanico(mecanico: Mecanico): Mecanico {
+    Validador.validarId(mecanico.id);
+    Validador.validarTextoObligatorio(mecanico.nombre, "Nombre");
+    Validador.validarTelefono(mecanico.telefono);
+    Validador.validarEmail(mecanico.email);
+    Validador.validarTextoObligatorio(mecanico['especialidad'], "Especialidad");
+
+    const mecanicoExistente = this._mecanicos.some(
+      (m) => m.obtenerIdentificacion() === mecanico.obtenerIdentificacion(),
+    );
+    if (mecanicoExistente) {
+      throw new Error(`El mecanico con ID ${mecanico.obtenerIdentificacion()} ya esta registrado en la plantilla`);
+    }
+
     this._mecanicos.push(mecanico);
-    console.log(`Mecanico: ${mecanico.obtenerIdentificacion()} dado de alta`);
+    return mecanico;
   }
 
-  public registrarRepuesto(repuesto: Repuesto): void {
+  public registrarRepuesto(repuesto: Repuesto): Repuesto {
+    Validador.validarId(repuesto.id);
+    Validador.validarTextoObligatorio(repuesto.nombre, "Nombre");
+    Validador.validarPrecio(repuesto.precio);
+    Validador.validarStock(repuesto.stock);
+
+    const repuestoExistente = this._repuestos.some(
+      (r) => r.id === repuesto.id,
+    );
+    if (repuestoExistente) {
+      throw new Error(`El repuesto con ID ${repuesto.id} ya esta registrado en el inventario`);
+    }
+
     this._repuestos.push(repuesto);
-    console.log(`Repuesto registrado en el inventario`);
+    return repuesto;
   }
 
   // LOGICA GENERAL DEL NEGOCIO
@@ -101,12 +132,17 @@ export class GestionTaller {
     idMecanico: string,
     descripcion: string,
     manoDeObra: number,
-  ): void {
-    const vehiculoExiste = this._vehiculos.some((v) => v.obtenerPlaca() === placa);
+  ): Reparacion {
+    Validador.validarPlaca(placa);
+    Validador.validarId(idMecanico);
+    Validador.validarTextoObligatorio(descripcion, "Descripción del problema");
+    Validador.validarManoDeObra(manoDeObra);
+
+    const vehiculoExiste = this._vehiculos.some((v) => v[`placa`] === placa);
 
     if (!vehiculoExiste) {
       throw new Error(
-        `ERROR: No se puede iniciar la reparación. La  placa ${placa} no esta registrada en el sistema `,
+        `No se puede iniciar la reparación. La placa ${placa} no esta registrada en el sistema.`,
       );
     }
 
@@ -115,14 +151,21 @@ export class GestionTaller {
     );
     if (!mecanico) {
       throw new Error(
-        `ERROR: El mecanico con ID ${idMecanico} no existe en la plantilla`,
+        `El mecanico con ID ${idMecanico} no existe en la plantilla.`
       );
     }
 
     if (!mecanico.disponible) {
       throw new Error(
-        `ERROR DE DISPONIBILIDAD: El mecanico ya esta asignado a otro vehiculo`,
+        `El mecanico ya esta asignado a otro vehiculo`
       );
+    }
+
+    const reparacionActiva = this._reparaciones.some(
+      (r) => r.placaVehiculo === placa && r.estado === "En Proceso",
+    );
+    if (reparacionActiva) {
+      throw new Error(`El vehiculo con placa ${placa} ya tiene una orden de reparacion activa en proceso`);
     }
 
     const idReparacion = `REP-${this._reparaciones.length + 1}`;
@@ -138,24 +181,30 @@ export class GestionTaller {
     this._reparaciones.push(nuevaReparacion);
     mecanico.cambiarDisponibilidad(false);
 
-    console.log(
-      `Orden: ${idReparacion} creada con exito para el vehiculo [${placa}]`,
-    );
+    return nuevaReparacion;
   }
 
   public asignarRepuestoAReparacion(
     idReparacion: string,
     idRepuesto: string,
     cant: number,
-  ): void {
-    const reparacion = this._reparaciones.find((r) => r.id === idReparacion);
+  ): { reparacion: Reparacion; repuesto: Repuesto; cantidad: number } {
+    Validador.validarTextoObligatorio(idReparacion, "ID de la reparación");
+    Validador.validarId(idRepuesto);
+    Validador.validarStock(cant);
+
+    const reparacion = this._reparaciones.find((r) => r[`id`] === idReparacion);
     if (!reparacion) {
       throw new Error(
         `ERROR DE INVENTARIO: La orden de reparacion ${idReparacion} no existe`,
       );
     }
 
-    const repuesto = this._repuestos.find((r) => r.obtenerId() === idRepuesto);
+    if (reparacion.estado === "Completado") {
+      throw new Error(`No se pueden asignar repuestos. La orden de reparacion ${idReparacion} ya esta completada`);
+    }
+
+    const repuesto = this._repuestos.find((r) => r[`id`] === idRepuesto);
     if (!repuesto) {
       throw new Error(
         `ERROR DE INVENTARIO: El repuesto no existe en el catagolo`,
@@ -173,19 +222,21 @@ export class GestionTaller {
     repuesto.disminuirStock(cant);
     reparacion.agregarRepuesto(repuesto, cant);
 
-    const repuestoNombre = repuesto.obtenerNombre();
-
-    console.log(
-      `Se agregaron ${cant} unidades de ${repuestoNombre} a la orden ${idReparacion}`,
-    );
+    return { reparacion, repuesto, cantidad: cant };
   }
 
   public finalizarYFacturarReparacion(idReparacion: string): Factura {
-    const reparacion = this._reparaciones.find((r) => r.id === idReparacion);
+    Validador.validarTextoObligatorio(idReparacion, "ID de la reparación");
+
+    const reparacion = this._reparaciones.find((r) => r[`id`] === idReparacion);
     if (!reparacion) {
       throw new Error(
         `No se puede facturar.La orden ${idReparacion} no existe`,
       );
+    }
+
+    if (reparacion.estado === "Completado") {
+      throw new Error(`No se puede facturar. La orden de reparacion ${idReparacion} ya ha sido finalizada y facturada previamente`);
     }
 
     reparacion.actualizarEstado(`Completado`);
@@ -205,27 +256,20 @@ export class GestionTaller {
 
     this._facturas.push(nuevaFactura);
 
-    console.log(
-      `Orden: ${idReparacion} cerrada. Factura ${idFactura} emitida correctamente`,
-    );
-
     return nuevaFactura;
   }
 
   public consultarHistorialVehiculo(placa: string): Reparacion[] {
+    Validador.validarPlaca(placa);
+
+    const vehiculoExiste = this._vehiculos.some((v) => (v as any)['placa'] === placa);
+    if (!vehiculoExiste) {
+      throw new Error(`La placa ${placa} no esta registrada en el sistema`);
+    }
+
     const historial = this._reparaciones.filter(
       (r) => r.placaVehiculo === placa,
     );
-
-    if (historial.length === 0) {
-      console.log(
-        `[Aviso]: No se encontraron registros de reparación previos para la placa [${placa}].`,
-      );
-    } else {
-      console.log(
-        `[Sistema]: Se encontraron ${historial.length} órdenes de servicio para la placa [${placa}].`,
-      );
-    }
 
     return historial;
   }
