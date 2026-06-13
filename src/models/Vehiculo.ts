@@ -13,5 +13,13 @@ export abstract class Vehiculo {
     this.clienteId = clienteId
   }
 
+  public obtenerPlaca(): string {
+    return this.placa;
+  }
+
+  public obtenerClienteId(): string {
+    return this.clienteId;
+  }
+
   abstract obtenerTipo(): string
 }

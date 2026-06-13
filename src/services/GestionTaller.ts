@@ -14,9 +14,6 @@ export class GestionTaller {
   private readonly _reparaciones: Reparacion[] = [];
   private readonly _facturas: Factura[] = [];
 
-  // No se necesita constructor, así que se elimina para evitar redondancias
-  // constructor() {}
-
   // ES6 GETTERS
   public get clientes(): Cliente[] {
     return this._clientes;
@@ -158,7 +155,7 @@ export class GestionTaller {
       );
     }
 
-    if (mecanico[`disponible`] === false) {
+    if (!mecanico.disponible) {
       throw new Error(
         `El mecanico ya esta asignado a otro vehiculo`
       );
@@ -214,12 +211,11 @@ export class GestionTaller {
       );
     }
 
-    if (repuesto[`stock`] < cant) {
-      // variables para evitar doble backticks
-      let respuestoNombre = repuesto[`nombre`];
-      let repuestoStock = repuesto[`stock`];
+    if (repuesto.obtenerStock() < cant) {
+      const repuestoNombre = repuesto.obtenerNombre();
+      const repuestoStock = repuesto.obtenerStock();
       throw new Error(
-        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${respuestoNombre}: ${repuestoStock} unidades`,
+        `STOCK INSUFICIENTE: No se puede asignar. Stock actual de ${repuestoNombre}: ${repuestoStock} unidades`,
       );
     }
 
@@ -248,7 +244,7 @@ export class GestionTaller {
     const costoTotal = reparacion.calcularCostoTotal();
 
     const mecanico = this._mecanicos.find(
-      (m) => m.obtenerIdentificacion() === reparacion[`idMecanico`],
+      (m) => m.obtenerIdentificacion() === reparacion.idMecanico,
     );
     if (mecanico) {
       mecanico.cambiarDisponibilidad(true);
@@ -272,9 +268,10 @@ export class GestionTaller {
     }
 
     const historial = this._reparaciones.filter(
-      (r) => r["placaVehiculo"] === placa,
+      (r) => r.placaVehiculo === placa,
     );
 
     return historial;
   }
 }
+
